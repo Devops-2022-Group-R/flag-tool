@@ -26,9 +26,9 @@ Options:
 )
 
 type Args struct {
-	TweetId   int
-	Help      bool
-	AllTweets bool
+	MsgId       int
+	Help        bool
+	AllMessages bool
 }
 
 func flagMsgById(msgId int, c *http.Client) string {
@@ -55,19 +55,19 @@ func getAllTweets(c *http.Client) []string {
 func retrieveArgs() Args {
 	args := Args{}
 	help := flag.Bool("h", false, "print help")
-	tweets := flag.Bool("i", false, "print all tweets")
+	messages := flag.Bool("i", false, "print all tweets")
 
 	flag.Parse()
 
 	if *help {
 		args.Help = true
-	} else if *tweets {
-		args.AllTweets = true
+	} else if *messages {
+		args.AllMessages = true
 	} else {
-		PotentialTweetId := flag.Arg(0)
-		PotentialTweetId = strings.Trim(PotentialTweetId, " ")
-		tweetId, _ := strconv.Atoi(PotentialTweetId)
-		args.TweetId = tweetId
+		PotentialMsgId := flag.Arg(0)
+		PotentialMsgId = strings.Trim(PotentialMsgId, " ")
+		msgId, _ := strconv.Atoi(PotentialMsgId)
+		args.MsgId = msgId
 	}
 	return args
 }
@@ -82,15 +82,15 @@ func main() {
 
 	client := http.Client{}
 
-	if args.AllTweets {
-		tweets := getAllTweets(&client)
-		for _, tweet := range tweets {
-			fmt.Println(tweet)
+	if args.AllMessages {
+		messages := getAllMessages(&client)
+		for _, msg := range messages {
+			fmt.Println(msg)
 		}
 		return
 	}
-	if args.TweetId != 0 {
-		response := flagMsgById(args.TweetId, &client)
+	if args.MsgId != 0 {
+		response := flagMsgById(args.MsgId, &client)
 		fmt.Println(response)
 	}
 }
