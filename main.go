@@ -95,6 +95,11 @@ func main() {
 	}
 }
 
+//helper
+func (m Message) String() string {
+	return fmt.Sprintf("Author: %s PubDate: %s Text: %s Flagged: %t", m.Author.Username, time.Unix(m.PubDate, 0).String(), m.Text, m.Flagged)
+}
+
 // straight copy pasta from Minitwit.models
 type User struct {
 	UserId       int64
