@@ -1,16 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
 	apiURL     = "https://api.rhododevdron.swuwu.dk"
+	helpString = `ITU-Minitwit Tweet Flagging Tool
 
 
 Usage:
@@ -44,10 +48,27 @@ func flagMsgById(msgId int, c *http.Client) string {
 	return fmt.Sprintf("Flagged entry: %d", msgId)
 }
 
-func getAllTweets(c *http.Client) []string {
-	tweets := make([]string, tweetArrayInitialSize)
+func getAllMessages(c *http.Client) []Message {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/flag_tool/msgs", apiURL), nil)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 
-	return tweets
+	resp, err := c.Do(req)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	resp.Body.Close()
+
+	var messages []Message
+	json.Unmarshal(body, &messages)
+
+	return messages
 }
 
 func retrieveArgs() Args {
