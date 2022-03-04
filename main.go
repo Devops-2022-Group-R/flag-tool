@@ -10,9 +10,7 @@ import (
 )
 
 const (
-	apiURL                = "https://api.rhododevdron.swuwu.dk"
-	tweetArrayInitialSize = 5
-	helpString            = `ITU-Minitwit Tweet Flagging Tool
+	apiURL     = "https://api.rhododevdron.swuwu.dk"
 
 
 Usage:
