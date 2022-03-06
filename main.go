@@ -34,7 +34,7 @@ type Args struct {
 }
 
 func flagMsgById(msgId int, c *http.Client) string {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/flag_tool/%d", apiURL, msgId), nil)
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/flag_tool/%d", apiURL, msgId), nil)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
