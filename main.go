@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	apiURL     = "https://api.rhododevdron.swuwu.dk"
-	helpString = `ITU-Minitwit Tweet Flagging Tool
+	apiUrl           = "https://localhost:8080"
+	apiProductionUrl = "https://api.rhododevdron.swuwu.dk"
+	helpString       = `ITU-Minitwit Tweet Flagging Tool
 
 
 Usage:
@@ -28,13 +29,14 @@ Options:
 )
 
 type Args struct {
-	MsgId       int
-	Help        bool
-	AllMessages bool
+	MsgId        int
+	Help         bool
+	AllMessages  bool
+	IsProduction bool
 }
 
-func flagMsgById(msgId int, c *http.Client) string {
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/flag_tool/%d", apiURL, msgId), nil)
+func flagMsgById(msgId int, c *http.Client, url string) string {
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/flag_tool/%d", url, msgId), nil)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -48,8 +50,8 @@ func flagMsgById(msgId int, c *http.Client) string {
 	return fmt.Sprintf("Flagged entry: %d", msgId)
 }
 
-func getAllMessages(c *http.Client) []Message {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/flag_tool/msgs", apiURL), nil)
+func getAllMessages(c *http.Client, url string) []Message {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/flag_tool/msgs", url), nil)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -75,8 +77,13 @@ func retrieveArgs() Args {
 	args := Args{}
 	help := flag.Bool("h", false, "print help")
 	messages := flag.Bool("i", false, "print all tweets")
+	isProduction := flag.Bool("p", false, "Target production api url")
 
 	flag.Parse()
+
+	if *isProduction {
+		args.IsProduction = true
+	}
 
 	if *help {
 		args.Help = true
@@ -100,16 +107,20 @@ func main() {
 	}
 
 	client := http.Client{}
+	url := apiUrl
+	if args.IsProduction {
+		url = apiProductionUrl
+	}
 
 	if args.AllMessages {
-		messages := getAllMessages(&client)
+		messages := getAllMessages(&client, url)
 		for _, msg := range messages {
 			fmt.Println(msg)
 		}
 		return
 	}
 	if args.MsgId != 0 {
-		response := flagMsgById(args.MsgId, &client)
+		response := flagMsgById(args.MsgId, &client, url)
 		fmt.Println(response)
 	}
 }
