@@ -25,7 +25,8 @@ Usage:
 
 Options:
 -h            Show this screen.
--i            Dump all tweets and authors to STDOUT.`
+-i            Dump all tweets and authors to STDOUT.
+-p			  Target the production url`
 )
 
 type Args struct {
@@ -44,7 +45,7 @@ func flagMsgById(msgId int, c *http.Client, url string) string {
 	resp, err := c.Do(req)
 	if err != nil {
 		return fmt.Sprintf("Error: %s", err.Error())
-	} else if resp.StatusCode != http.StatusBadRequest {
+	} else if resp.StatusCode != http.StatusBadRequest && resp.StatusCode != http.StatusOK {
 		return fmt.Sprintf("BadRequest - This message id: %d might not exist", msgId)
 	}
 	return fmt.Sprintf("Flagged entry: %d", msgId)
