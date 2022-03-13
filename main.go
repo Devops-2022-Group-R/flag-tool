@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	apiUrl           = "https://localhost:8080"
+	apiUrl           = "http://localhost:8080"
 	apiProductionUrl = "https://api.rhododevdron.swuwu.dk"
 	helpString       = `ITU-Minitwit Tweet Flagging Tool
 

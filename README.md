@@ -12,4 +12,4 @@ go run . <command>
 
  ```n``` where n is an integer of the given message id to flag  
 
- ```-p``` to target production api - Default target is https://localhost:8080
+ ```-p``` to target production api - Default target is http://localhost:8080
