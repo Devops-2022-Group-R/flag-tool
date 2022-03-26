@@ -22,11 +22,14 @@ Usage:
 	flag_tool <tweet_id>
 	flag_tool -i
 	flag_tool -h
+	flag_tool -u <username> -pwd <password>
 
 Options:
 -h            Show this screen.
 -i            Dump all tweets and authors to STDOUT.
--p			  Target the production url`
+-p 		Target the production url. 
+-u 		Username
+-pwd		Password`
 )
 
 type Args struct {
@@ -34,44 +37,8 @@ type Args struct {
 	Help         bool
 	AllMessages  bool
 	IsProduction bool
-}
-
-func flagMsgById(msgId int, c *http.Client, url string) string {
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/flag_tool/%d", url, msgId), nil)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-
-	resp, err := c.Do(req)
-	if err != nil {
-		return fmt.Sprintf("Error: %s", err.Error())
-	} else if resp.StatusCode != http.StatusBadRequest && resp.StatusCode != http.StatusOK {
-		return fmt.Sprintf("BadRequest - This message id: %d might not exist", msgId)
-	}
-	return fmt.Sprintf("Flagged entry: %d", msgId)
-}
-
-func getAllMessages(c *http.Client, url string) []Message {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/flag_tool/msgs", url), nil)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-
-	resp, err := c.Do(req)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	resp.Body.Close()
-
-	var messages []Message
-	json.Unmarshal(body, &messages)
-
-	return messages
+	Username     string
+	Password     string
 }
 
 func retrieveArgs() Args {
@@ -79,12 +46,17 @@ func retrieveArgs() Args {
 	help := flag.Bool("h", false, "print help")
 	messages := flag.Bool("i", false, "print all tweets")
 	isProduction := flag.Bool("p", false, "Target production api url")
+	username := flag.String("u", "", "Username")
+	password := flag.String("pwd", "", "Password")
 
 	flag.Parse()
 
 	if *isProduction {
 		args.IsProduction = true
 	}
+
+	args.Username = *username
+	args.Password = *password
 
 	if *help {
 		args.Help = true
