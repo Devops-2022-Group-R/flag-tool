@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -80,25 +81,68 @@ func main() {
 	}
 
 	client := http.Client{}
+	encodedCrendetials := encodeCredentialsToB64(args.Username, args.Password)
 	url := apiUrl
+
 	if args.IsProduction {
 		url = apiProductionUrl
 	}
 
 	if args.AllMessages {
-		messages := getAllMessages(&client, url)
+		messages := getAllMessages(&client, url, encodedCrendetials)
 		for _, msg := range messages {
 			fmt.Println(msg)
 		}
 		return
 	}
+
 	if args.MsgId != 0 {
-		response := flagMsgById(args.MsgId, &client, url)
+		response := flagMsgById(args.MsgId, &client, url, encodedCrendetials)
 		fmt.Println(response)
 	}
 }
 
-//helper
+func flagMsgById(msgId int, c *http.Client, url, encodedeCredentials string) string {
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/flag_tool/%d", url, msgId), nil)
+	req = SetRequestHeader(encodedeCredentials, *req)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return fmt.Sprintf("Error: %s", err.Error())
+	} else if resp.StatusCode != http.StatusBadRequest && resp.StatusCode != http.StatusOK {
+		return fmt.Sprintf("BadRequest - This message id: %d might not exist", msgId)
+	}
+	return fmt.Sprintf("Flagged entry: %d", msgId)
+}
+
+func getAllMessages(c *http.Client, url, encodedeCredentials string) []Message {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/flag_tool/msgs", url), nil)
+	req = SetRequestHeader(encodedeCredentials, *req)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	resp.Body.Close()
+
+	var messages []Message
+	json.Unmarshal(body, &messages)
+
+	return messages
+}
+
+//helper toString
 func (m Message) String() string {
 	return fmt.Sprintf("Author: %s PubDate: %s Text: %s Flagged: %t", m.Author.Username, time.Unix(m.PubDate, 0).String(), m.Text, m.Flagged)
 }
@@ -116,4 +160,15 @@ type Message struct {
 	PubDate int64  // The publish timestamp as UNIX
 	Text    string // The message itself
 	Flagged bool
+}
+
+func encodeCredentialsToB64(username string, password string) string {
+	data := username + ":" + password
+	sEnc := base64.StdEncoding.EncodeToString([]byte(data))
+	return sEnc
+}
+
+func SetRequestHeader(encodededCredentials string, req http.Request) *http.Request {
+	req.Header.Set("Authorization", "Basic "+encodededCredentials)
+	return &req
 }
